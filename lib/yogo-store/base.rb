@@ -10,9 +10,10 @@ module Yogo
   module Store
     module Base
       module Setup
-        def initialize(*args, &block)
-          super
+        def initialize(options={}, &block)
+          @options = options
           setup
+          super
         end
         
         def setup
@@ -20,6 +21,12 @@ module Yogo
       end
 
       module Name
+        include Setup
+        def initialize(options={}, &block)
+          @name ||= options[:name] if options[:name]
+          super
+        end
+        
         def name
           @name
         end
@@ -27,6 +34,12 @@ module Yogo
       
       module Paths
         include Setup
+        include Name
+        def initialize(options={}, &block)
+          @path = options[:path]
+          @name ||= path.basename(extname)
+          super
+        end
         
         def path
           Pathname(@path)
@@ -109,6 +122,12 @@ module Yogo
         include Setup
         include Paths
         include Config
+
+        def initialize(options={}, &branch)
+          @branch = options[:branch] || 'master'
+          super
+        end
+
         
         def repository_path
           @repository_path ||= begin
