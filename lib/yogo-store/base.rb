@@ -46,6 +46,10 @@ module Yogo
           Pathname(@path)
         end
 
+        def extname
+          '.yogo'
+        end
+
         def repository_path
           path + "repo"
         end
