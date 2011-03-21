@@ -3,8 +3,9 @@ require 'fileutils'
 require 'git_store'
 require 'grit'
 require 'configatron'
-require 'yogo-store/inflector'
 require 'sequel'
+
+require 'yogo-store/inflector'
 
 module Yogo
   module Store
