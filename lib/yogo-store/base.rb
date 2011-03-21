@@ -6,6 +6,7 @@ require 'configatron'
 require 'sequel'
 
 require 'yogo-store/inflector'
+require 'yogo-store/handler/csv'
 
 module Yogo
   module Store
@@ -133,23 +134,41 @@ module Yogo
           super
         end
 
+        def repository_name
+          repo_name = Inflector.titleize(name).gsub(" ","")
+          Inflector.underscore(repo_name)
+        end
         
         def repository_path
-          @repository_path ||= begin
-                                 repo_name = Inflector.titleize(name).gsub(" ","")
-                                 repo_name = Inflector.underscore(repo_name)
-                                 path + "#{repo_name}_data.git"
+          @repository_path ||= begin                       
+                                 super + "#{repository_name}_data.git"
                                end
         end
 
-        def repository(branch='master')
-          @branches ||= {}
-          @branches[branch] ||= GitStore.new(repository_path.to_s, branch, true)
+        def repository
+          @repo ||= create_store(branch)
+        end
+
+        def branch
+          @branch
+        end
+
+        def checkout(branch_name)
+          new_opts = @options
+          new_opts[:branch] = branch_name
+          self.class.new(new_opts)
         end
 
         def setup
           super
           Grit::GitRuby::Repository.init(repository_path, true)
+        end
+
+        private
+        def create_store(branch)
+          store = GitStore.new(repository_path.to_s, branch, true)
+          store.handler['csv'] = Yogo::Store::Handler::CSVHandler.new
+          store
         end
       end
 
