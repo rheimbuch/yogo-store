@@ -10,16 +10,11 @@ module Yogo
       include Base::Paths
       include Base::Config
       include Base::Repository
-      include Base::Database
+      include Base::Database::Base
+    end
 
-      def initialize(path)
-        @path = path
-        super
-      end
-
-      def name
-        path.basename
-      end
+    class DataStore < BasicStore
+      include Base::Database::TokyoTable
     end
   end
 end
