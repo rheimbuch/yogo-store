@@ -4,6 +4,7 @@ require 'git_store'
 require 'grit'
 require 'configatron'
 require 'sequel'
+require 'rufus/tokyo'
 
 require 'yogo-store/inflector'
 require 'yogo-store/handler/csv'
@@ -173,15 +174,40 @@ module Yogo
       end
 
       module Database
-        include Paths
-        include Config
-        
-        def database(ref='master', name='default')
-          db_name = database_path + ref + "#{name}.db"
-          FileUtils.mkdir_p(db_name.dirname)
+        module Base
+          include Paths
+          include Config
+          include Repository
           
-          @databases ||= {}
-          @databases[db_name.to_s] ||= Sequel.connect("sqlite://" + db_name.expand_path.to_s)
+
+          def table(name)
+            @tables ||= {}
+            @tables[table_path(name).to_s] ||= create_table(table_path(name))
+          end
+
+          private
+          def table_path(name)
+            database_path + branch + "tree" + "#{name}"
+          end
+
+          def create_table(path)
+            {}
+          end
+        end
+
+        module TokyoTable
+          include Database::Base
+
+          private
+
+          def table_path(name)
+            path = Pathname(super.to_s + '.tct')
+            
+          end
+          def create_table(path)
+            FileUtils.mkdir_p(path.dirname.to_s)
+            Rufus::Tokyo::Table.new(path.expand_path.to_s)
+          end
         end
       end
       
